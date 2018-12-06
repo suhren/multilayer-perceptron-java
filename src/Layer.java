@@ -5,16 +5,15 @@
  */
 public class Layer {
 	
-	interface ActivationFunction {
-		double eval(double x);
-	}
+	@FunctionalInterface
+	interface ActivationFunction { double eval(double x); }
 	
 	static private ActivationFunction identity = (x) -> x;
 	static private ActivationFunction binaryStep = (x) -> (x < 0) ? 0 : 1;
 	static private ActivationFunction elliotSig = (x) -> x / (1 + Math.abs(x));
 	static private ActivationFunction relu = (x) -> (x < 0) ? 0 : x;
 	
-	public double[] output;
+	public double[] o;
 	public double[][] w;
 	public double[] b;
 	
@@ -27,12 +26,12 @@ public class Layer {
 			throw new NullPointerException("Layer parameters not defined.");
 		this.w = w;
 		this.b = b;
-		output = new double[w.length];
+		o = new double[w.length];
 	}
 	
-	public double[] feedForward(double[] data) {
-		output = activate(vecAdd(matVecMult(w, data), b), relu);
-		return output;
+	public double[] feedForward(double[] input) {
+		o = activate(vecAdd(matVecMult(w, input), b), relu);
+		return o;
 	}
 	
 	private static double[] activate(double[] a, ActivationFunction aFun) {
@@ -53,6 +52,18 @@ public class Layer {
 		return result;
 	}
 	
+	public static double[] vecSub(double[] a, double[] b) {
+		if (a.length != b.length)
+			throw new IllegalArgumentException("Vectors have to be of the same length.");
+		
+		double[] result = new double[a.length];
+		
+		for (int i = 0; i < a.length; i++)
+			result[i] = a[i] - b[i];
+		
+		return result;
+	}
+	
 	private static double[] matVecMult(double[][] matrix, double[] vector) {
 		if (matrix[0].length != vector.length)
 			throw new IllegalArgumentException("The number of columns in the matrix has to be equal to the number of elements in the vector.");
@@ -66,7 +77,7 @@ public class Layer {
 		
 	}
 	
-	private static int dotProduct(double[] a, double[] b) {
+	public static int dotProduct(double[] a, double[] b) {
 		if (a.length != b.length)
 			throw new IllegalArgumentException("Vectors have to be of the same length.");
 		
@@ -83,7 +94,7 @@ public class Layer {
 			for (int col = 0; col < w[0].length; col++)
 				builder.append(w[row][col] + " ");
 			builder.append(b[row] + " ");
-			builder.append(output[row] + "\n");
+			builder.append(o[row] + "\n");
 		}
 			
 		return builder.toString();
