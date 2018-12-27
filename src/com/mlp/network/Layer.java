@@ -1,5 +1,7 @@
 package com.mlp.network;
 
+import java.util.Random;
+
 import com.mlp.math.ActivationFunction;
 import com.mlp.math.Utils;
 
@@ -48,6 +50,15 @@ public class Layer {
 		this.aFun = aFun;
 		this.out = new double[w.length];
 		this.dEdN = new double[w.length];
+	}
+	
+	public void randomize() {
+		Random rand = new Random();
+		for (int row = 0; row < w.length; row++) {
+			b[row] = rand.nextDouble();
+			for (int col = 0; col < w[0].length; col++)
+				w[row][col] = rand.nextDouble();
+		}
 	}
 	
 	public double[] feedForward(double[] input) {

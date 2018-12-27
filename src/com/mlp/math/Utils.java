@@ -90,11 +90,11 @@ public class Utils {
 		
 	}
 	
-	public static int dotProduct(double[] a, double[] b) {
+	public static double dotProduct(double[] a, double[] b) {
 		if (a.length != b.length)
 			throw new IllegalArgumentException("Vectors have to be of the same length.");
 		
-		int result = 0;
+		double result = 0.0;
 		for (int i = 0; i < a.length; i++)
 			result += a[i] * b[i];
 		return result;
