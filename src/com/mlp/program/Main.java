@@ -4,7 +4,7 @@ import java.util.Scanner;
 import com.mlp.math.Vector;
 import com.mlp.math.Utils;
 import com.mlp.network.MLP;
-import com.mlp.network.TrainingSet;
+import com.mlp.network.DataSet;
 
 /**
  * The main entry point of the program.
@@ -18,24 +18,35 @@ public class Main {
 				"MNIST\\t10k-labels-idx1-ubyte",
 				"MNIST\\t10k-images-idx3-ubyte");
 		
-		TrainingSet trainingSet = new TrainingSet();
+		DataSet trainingSet = new DataSet();
 		for (int i = 0; i < mnist.nTrainingImages(); i++)
-			trainingSet.addTrainingEntry(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
+			trainingSet.addEntry(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
 
+		DataSet testSet = new DataSet();
+		for (int i = 0; i < mnist.nTestImages(); i++)
+			testSet.addEntry(mnist.getTestImageAsVector(i), mnist.getTestLabelAsVector(i));
+		
 		// Works for a single image, not all of them!
 		//MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {8, 4, 4, 10}, Utils.sinusoid, 0.01);
 		
-		MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {12, 10}, Utils.AFunLibrary.ELLIOT_SIG.aFun(), 0.01);
+//		MLP mlp = new MLP("mlp-12-10-elliotSig-0_01", 0.01, mnist.nRows() * mnist.nCols(), new int[] {12, 10}, Utils.AFunLibrary.ELLIOT_SIG.aFun());
 
-//		MLP mlp = new MLP(FileUtils.readFromFile("mlp-12-10-elliotSig-0_01.txt", Utils.elliotSig));
+		MLP mlp = FileUtils.readFromFile("mlp-12-10-elliotSig-0_01.txt");
 		
-		for (int i = 1; i <= 100; i++) {
-			double averageCost = mlp.train(trainingSet);
-			System.out.println("Loop" + i + ": Cost: " + averageCost);
-		}
+//		for (int i = 1; i <= 100; i++) {
+//			double averageCost = mlp.train(trainingSet);
+//			System.out.println("Loop" + i + ": Cost: " + averageCost);
+//		}
 	
+		double rate = mlp.test(testSet);
+		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
+		rate = mlp.test(trainingSet);
+		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
+		
 		ImageFrame imageFrame = new ImageFrame();
 		imageFrame.setVisible(true);
+
+//		FileUtils.writeToFile(mlp, "mlp-12-10-elliotSig-0_01.txt");
 		
 		int i = -1;
 		Scanner sc = new Scanner(System.in);
@@ -64,11 +75,10 @@ public class Main {
 		}
 		sc.close();
 		
-//		FileUtils.writeToFile(mlp, "mlp-12-10-elliotSig-0_01.txt");
-		
+//		
 //		System.out.println("");
 //		printArray(mnist.getTrainingImageAsVector(0));
-		
+//		
 //		ImageFrame imageFrame = new ImageFrame();
 //		imageFrame.setVisible(true);
 //		for (int i = 0; i < 100; i++) {
@@ -82,11 +92,11 @@ public class Main {
 //			}
 //		}
 		
-//		double[] input = new double[] {1.0, 2.0, 3.0, 4.0};
-//		double[] expected = new double[] {1.0, 0.0, 1.0, 0.0, -1.0};
-//		String filePath = "TestMLP2.txt";
+//		Vector input = new Vector(new double[] {1.0, 2.0, 3.0, 4.0});
+//		Vector expected = new Vector(new double[] {1.0, 0.0, 1.0, 0.0, -1.0});
+//		String filePath = "TestMLP.txt";
 //		
-//		MLP network = new MLP(FileUtils.readFromFile(filePath, Utils.sinusoid));
+//		MLP network = FileUtils.readFromFile(filePath);
 //		System.out.println("Initial state:");
 //		System.out.println(network.getCost());
 //		System.out.print(network.toString() + "\n");

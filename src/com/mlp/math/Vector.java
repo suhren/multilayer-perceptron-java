@@ -41,7 +41,7 @@ public class Vector {
 	}
 	
 	public Vector sub(Vector v) {
-		if (size != v.size())
+		if (v == null)
 			throw new NullPointerException("Vector is null.");
 		if (size != v.size())
 			throw new IllegalArgumentException("Vectors have to be of the same length.");
@@ -53,7 +53,30 @@ public class Vector {
 		
 		return new Vector(result);
 	}
-
+	
+	public Vector multiply(double d) {
+		double[] result = new double[size];
+		
+		for (int i = 0; i < size; i++)
+			result[i] *= d;
+		
+		return new Vector(result);
+	}
+	
+	public Vector multiply(Vector v) {
+		if (v == null)
+			throw new NullPointerException("Vector is null.");
+		if (size != v.size())
+			throw new IllegalArgumentException("Vectors have to be of the same length.");
+		
+		double[] result = new double[size];
+		
+		for (int i = 0; i < size; i++)
+			result[i] = data[i] * v.get(i);
+		
+		return new Vector(result);
+	}
+	
 	public double dotProduct(Vector v) {
 		return dotProduct(v.data);
 	}

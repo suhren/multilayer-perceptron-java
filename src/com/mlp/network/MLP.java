@@ -10,14 +10,15 @@ import com.mlp.math.Vector;
  */
 public class MLP {
 	private Layer[] layers;
-	private Layer outLayer;
+	private Layer oL;
 	private double cost;
-	// Learning rate
 	private double eta = 0.01;
+	private String name;
 	
 	private Vector input;
 	
-	public MLP(int inputSize, int[] outputSizes, AFun aFun, double eta) {
+	public MLP(String name, double eta, int inputSize, int[] outputSizes, AFun aFun) {
+		this.name = name;
 		layers = new Layer[outputSizes.length];
 		int inSize = inputSize;
 		for (int i = 0; i < outputSizes.length; i++) {
@@ -26,31 +27,48 @@ public class MLP {
 			inSize = outputSizes[i];
 		}
 		
-		this.outLayer = layers[layers.length - 1];
+		this.oL = layers[layers.length - 1];
 		input = new Vector(inputSize);
 		this.eta = eta;
 	}
 	
-	public MLP(Layer[] layers) {
+	public MLP(String name, double eta, Layer[] layers) {
 		if (layers == null)
 			throw new NullPointerException("No layers specified.");
 		if (layers.length < 2)
 			throw new IllegalArgumentException("The MLP needs to have at least 2 layers.");
 		
+		this.name = name;
+		this.eta = eta;
 		// Copy over the layers for the immutable property
 		this.layers = layers.clone();
-		this.outLayer = layers[layers.length - 1];
+		this.oL = layers[layers.length - 1];
 		input = new Vector(layers[0].w.nCol());
 	}
 	
-	public double train(TrainingSet trainingSet) {
+	public double train(DataSet trainingSet) {
 		double sum = 0.0;
-		for (TrainingEntry e : trainingSet.getTrainingEntries()) {
-			feedThrough(e.getInput(), e.getExpectedOutput());
+		
+		for (DataEntry e : trainingSet.getEntries()) {
+			feedThrough(e.getInput(), e.getExpected());
 			sum += cost;
-			backPropagate(e.getExpectedOutput());
+			backPropagate(e.getExpected());
 		}
-		return sum / trainingSet.getTrainingEntries().size();
+		
+		return sum / trainingSet.getEntries().size();
+	}
+	
+	public double test(DataSet testSet) {
+		int nCorrect = 0;
+		
+		for (DataEntry e : testSet.getEntries()) {
+			feedThrough(e.getInput(), e.getExpected());
+			if (mostLikely(oL.out) == mostLikely(e.getExpected()))
+				nCorrect++;
+		}
+		
+		return nCorrect * 1.0 / testSet.getEntries().size();
+		
 	}
 	
 	/**
@@ -59,7 +77,7 @@ public class MLP {
 	 * @return The output of the MLP.
 	 */
 	public Vector feedThrough(Vector input, Vector expectedOutput) {
-		if (outLayer.out.size() != expectedOutput.size())
+		if (oL.out.size() != expectedOutput.size())
 			throw new IllegalArgumentException("The dimensions of the expected output vector has to be equal to the dimensions of the output vector in the output layer.");
 		
 		this.input = input.clone();
@@ -68,7 +86,7 @@ public class MLP {
 		for (Layer l : layers)
 			current = l.feedForward(current);
 
-		cost = calcCost(expectedOutput, outLayer.out);
+		cost = calcCost(expectedOutput, oL.out);
 		
 		return current;
 	}
@@ -76,19 +94,18 @@ public class MLP {
 	/**
 	 * Perform back propagation updating the weights of the layers using the latest output of MLP.
 	 */
-	public void backPropagate(Vector expectedOutput) {
+	public void backPropagate(Vector eO) {
 		// Output layer
-		for (int row = 0; row < outLayer.w.nRow(); row++) {
-//			double dEdO = 2 * 1.0 / outputLayer.w.length * (outputLayer.out[row] - expectedOutput[row]);
-			double dEdO = 2 * (outLayer.out.get(row) - expectedOutput.get(row));
-			double dOdZ = outLayer.aFun.evalDerivate(outLayer.z.get(row));
-			outLayer.dEdZ.set(row, dEdO * dOdZ);
+		for (int row = 0; row < oL.w.nRow(); row++) {
+			double dEdO = 2 * (oL.out.get(row) - eO.get(row));
+			double dOdZ = oL.aFun.evalDerivate(oL.z.get(row));
+			oL.dEdZ.set(row, dEdO * dOdZ);
 			double dEdB = dEdO * dOdZ * 1;
-			outLayer.bNew.set(row, outLayer.b.get(row) - eta * dEdB);
-			for (int col = 0; col < outLayer.w.nCol(); col++) {
-				double dZdW = outLayer.in.get(col);
+			oL.bNew.set(row, oL.b.get(row) - eta * dEdB);
+			for (int col = 0; col < oL.w.nCol(); col++) {
+				double dZdW = oL.in.get(col);
 				double dEdW = dEdO * dOdZ * dZdW;
-				outLayer.wNew.set(row, col, outLayer.w.get(row, col) - eta * dEdW);
+				oL.wNew.set(row, col, oL.w.get(row, col) - eta * dEdW);
 			}
 		}
 		
@@ -99,9 +116,6 @@ public class MLP {
 			for (int row = 0; row < l.w.nRow(); row++) {
 				double dOdZ = l.aFun.evalDerivate(l.z.get(row));
 				double dEdO = 0;
-//				for (int j = 0; j < nl.w.length; j++)
-//					for (int k = 0; k < nl.w[0].length; k++)
-//						dEdO += nl.dEdN[j] * nl.w[row][k];
 				for (int j = 0; j < nl.w.nRow(); j++)
 					dEdO += nl.dEdZ.get(j) * nl.w.get(j, row);
 				
@@ -144,7 +158,7 @@ public class MLP {
 	 */
 	public Layer[] getLayers() { return layers; }
 	
-	public Vector getInputLayer() {
+	public Vector getInput() {
 		return input;
 	}
 	
@@ -212,6 +226,10 @@ public class MLP {
 		return(map.toString());
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	class CharMap {
 		public char[] map;
 		public int n, w, h;
@@ -245,5 +263,18 @@ public class MLP {
 			}
 			return s.toString();
 		}
+	}
+
+	
+	private int mostLikely(Vector output) {
+		int current = 0;
+		for (int i = 1; i < output.size(); i++)
+			if (output.get(i) > output.get(current))
+				current = i;
+		return current;
+	}
+	
+	public double getLearningRate() {
+		return eta;
 	}
 }

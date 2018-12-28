@@ -1,9 +1,9 @@
 package com.mlp.program;
 
 import com.mlp.math.Vector;
-import com.mlp.network.TrainingSet;
+import com.mlp.network.DataSet;
 
-public class MNIST extends TrainingSet {
+public class MNIST extends DataSet {
 
 	private int[] testLabels;
 	private int[] trainingLabels;

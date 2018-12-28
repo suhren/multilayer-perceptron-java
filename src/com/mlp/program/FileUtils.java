@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import com.mlp.math.AFun;
+import com.mlp.math.Utils;
 import com.mlp.network.Layer;
 import com.mlp.network.MLP;
 
@@ -30,11 +31,38 @@ public class FileUtils {
 		try {
 			writer = new PrintWriter(filePath, "UTF-8");
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		writer.write(network.getName() + "\n");
+		writer.write(network.getLearningRate() + "\n");
+		writer.write(network.getInput().size() + "\n");
+		
+		for (Layer l : network.getLayers())
+			writer.write(l.w.nRow() + " ");
+		writer.write("\n");
+		for (Layer l : network.getLayers())
+			writer.write(l.aFun.code() + "\n");
+		
+		for (Layer l : network.getLayers())
+			for (int row = 0; row < l.w.nRow(); row++) {
+				for (int col = 0; col < l.w.nCol(); col++)
+					writer.write(l.w.get(row, col) + " ");
+				writer.write(l.b.get(row) + "\n");
+			}
+		writer.close();
+	}
+	
+	public static void writeToFileOld(MLP network, String filePath) {
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(filePath, "UTF-8");
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		writer.write(network.getInputLayer().size() + " ");
+		writer.write(network.getInput().size() + " ");
 		for (Layer l : network.getLayers())
 			writer.write(l.w.nRow() + " ");
 		writer.write("\n");
@@ -48,7 +76,49 @@ public class FileUtils {
 		writer.close();
 	}
 	
-	public static Layer[] readFromFile(String filePath, AFun aFun) {
+	public static MLP readFromFile(String filePath) {
+		File file = new File(filePath);
+		Scanner sc = null;
+		try {
+			sc = new Scanner(file);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		String mlpName = sc.nextLine();
+		double mlpRate = Double.parseDouble(sc.nextLine());
+		int inputs = Integer.parseInt(sc.nextLine());
+		
+		String[] lStrings = sc.nextLine().split(" ");
+		int[] dim = new int[lStrings.length];
+		for (int i = 0; i < lStrings.length; i++)
+			dim[i] = Integer.parseInt(lStrings[i]);
+		
+		for (int i = 0; i < dim.length; i++)
+			lStrings[i] = sc.nextLine();
+
+		Layer[] layers = new Layer[dim.length];
+		
+		for (int i = 0; i < dim.length; i++) {
+			int nRow = dim[i];
+			int nCol = inputs;
+			layers[i] = new Layer(nRow, nCol, Utils.AFunLibrary.fromCode(lStrings[i]));
+			double[] data = new double[nCol];
+			for (int row = 0; row < nRow; row++) {
+				for (int col = 0; col < nCol; col++)
+					data[col] = sc.nextDouble();
+				layers[i].w.setRow(row, data);
+				layers[i].b.set(row, sc.nextDouble());
+			}
+			inputs = nRow;
+		}
+
+		return new MLP(mlpName, mlpRate, layers);
+	}
+	
+	public static Layer[] readFromFileOld(String filePath, AFun aFun) {
 		File file = new File(filePath);
 		Scanner sc = null;
 		try {

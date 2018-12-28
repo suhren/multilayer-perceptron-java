@@ -40,8 +40,27 @@ public class Matrix {
 	public void setRow(int row, double[] data) {
 		this.data[row] = data.clone();
 	}
+	public Matrix rowSub(Vector v) {
+		double[][] result = data.clone();
+		for (int row = 0; row < nRow; row++)
+			for (int col = 0; col < nCol; col++)
+				this.data[row][col] -= v.get(row);
+		return new Matrix(result);
+	}
+	
 	public double get(int row, int col) {
 		return data[row][col];
+	}
+	
+	public Vector getRow(int row) {
+		return new Vector(data[row]);
+	}
+	
+	public Vector getCol(int col) {
+		double[] result = new double[nRow];
+		for (int row = 0; row < nRow; row++)
+			result[row] = data[row][col];
+		return new Vector(result);
 	}
 	
 	public int nRow() {
