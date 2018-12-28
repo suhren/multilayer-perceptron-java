@@ -4,99 +4,76 @@ public class Utils {
 	// List of activation functions:
 	// https://en.wikipedia.org/wiki/Activation_function
 	
-	// Identity
-	public static ActivationFunction identity = new ActivationFunction(
+	public enum AFunLibrary {
+		IDENTITY(new AFun(
+			"Identity",
 			(x) -> x,
-			(x) -> 1);
-	// Binary step
-	public static ActivationFunction binaryStep = new ActivationFunction(
+			(x) -> 1)),
+		BINARY_STEP(new AFun(
+			"Binary Step",
 			(x) -> (x < 0) ? 0 : 1,
-			(x) -> 0);
-	// Logistic (a.k.a. Sigmoid or Soft step)
-	public static ActivationFunction logistic = new ActivationFunction(
+			(x) -> 0)),
+		LOGISTIC(new AFun(
+			"Logistic",
 			(x) -> 1.0/(1 + Math.exp(-x)),
-			(x) -> 1.0/(1 + Math.exp(-x)) * (1 - 1.0/(1 + Math.exp(-x))));
-	// TanH
-	public static ActivationFunction tanH = new ActivationFunction(
+			(x) -> 1.0/(1 + Math.exp(-x)) * (1 - 1.0/(1 + Math.exp(-x))))),
+		TANH(new AFun(
+			"TanH",
 			(x) -> Math.tanh(x),
-			(x) -> 1 - Math.pow(Math.tanh(x), 2));
-	// ArcTan
-	public static ActivationFunction arcTan = new ActivationFunction(
+			(x) -> 1 - Math.pow(Math.tanh(x), 2))),
+		ARCTAN(new AFun(
+			"ArcTan",
 			(x) -> Math.atan(x),
-			(x) -> 1.0 / (x*x + 1));
-	// ElliotSig SoftSign	
-	public static ActivationFunction elliotSig = new ActivationFunction(
+			(x) -> 1.0 / (x*x + 1))),
+		ELLIOT_SIG(new AFun(
+			"ElliotSig",
 			(x) -> x / (1 + Math.abs(x)),
-			(x) -> 1.0 / Math.pow(1 + Math.abs(x), 2));
-	// Rectified Linear Unit (ReLU)
-	public static ActivationFunction relu = new ActivationFunction(
+			(x) -> 1.0 / Math.pow(1 + Math.abs(x), 2))),
+		RELU(new AFun(
+			"ReLU",
 			(x) -> (x < 0) ? 0 : x,
-			(x) -> (x < 0) ? 0 : 1);
-	// Leaky Rectified Linear Unit (Leaky ReLU)
-	public static ActivationFunction relu_leaky = new ActivationFunction(
+			(x) -> (x < 0) ? 0 : 1)),
+		RELU_LEAKY(new AFun(
+			"ReLULeaky",
 			(x) -> (x < 0) ? 0.01 * x : x,
-			(x) -> (x < 0) ? 0.01 : 1);
-	// SoftPlus
-	public static ActivationFunction softPlus = new ActivationFunction(
+			(x) -> (x < 0) ? 0.01 : 1)),
+		SOFT_PLUS(new AFun(
+			"SoftPlus",
 			(x) -> Math.log(1 + Math.exp(x)),
-			(x) -> 1.0 / (1 + Math.exp(-x)));
-	// Sinusoid
-	public static ActivationFunction sinusoid = new ActivationFunction(
+			(x) -> 1.0 / (1 + Math.exp(-x)))),
+		SINUSOID(new AFun(
+			"Sinusoid",
 			(x) -> Math.sin(x),
-			(x) -> Math.cos(x));
-	// Sinc
-	public static ActivationFunction sinc = new ActivationFunction(
+			(x) -> Math.cos(x))),
+		SINC(new AFun(
+			"Sinc",
 			(x) -> (x == 0) ? 0 : Math.sin(x) / x,
-			(x) -> (x == 0) ? 0 : Math.cos(x) / x - Math.sin(x) / x*x);
-	// Gaussian
-	public static ActivationFunction gaussian = new ActivationFunction(
+			(x) -> (x == 0) ? 0 : Math.cos(x) / x - Math.sin(x) / x*x)),
+		GAUSSIAN(new AFun(
+			"Gaussian",
 			(x) -> Math.exp(-x*x),
-			(x) -> -2*x*Math.exp(-x*x));
-	
-	public static double[] vecAdd(double[] a, double[] b) {
-		if (a.length != b.length)
-			throw new IllegalArgumentException("Vectors have to be of the same length.");
+			(x) -> -2*x*Math.exp(-x*x)));
 		
-		double[] result = new double[a.length];
+		private final AFun aFun;
 		
-		for (int i = 0; i < a.length; i++)
-			result[i] = a[i] + b[i];
+		AFunLibrary(AFun aFun) {
+			this.aFun = aFun;
+		}
 		
-		return result;
-	}
-	
-	public static double[] vecSub(double[] a, double[] b) {
-		if (a.length != b.length)
-			throw new IllegalArgumentException("Vectors have to be of the same length.");
+		public static AFun fromCode(String code) {
+			if (code != null)
+				for (AFunLibrary a : AFunLibrary.values())
+					if (code.equalsIgnoreCase(a.aFun.code()))
+						return a.aFun;
+			return null;
+		}
 		
-		double[] result = new double[a.length];
+		public String code() {
+			return aFun.code();
+		}
 		
-		for (int i = 0; i < a.length; i++)
-			result[i] = a[i] - b[i];
-		
-		return result;
-	}
-	
-	public static double[] matVecMult(double[][] matrix, double[] vector) {
-		if (matrix[0].length != vector.length)
-			throw new IllegalArgumentException("The number of columns in the matrix has to be equal to the number of elements in the vector.");
-		
-		double[] result = new double[matrix.length];
-		
-		for (int row = 0; row < matrix.length; row++)
-			result[row] = dotProduct(matrix[row], vector);
-		
-		return result;
-		
-	}
-	
-	public static double dotProduct(double[] a, double[] b) {
-		if (a.length != b.length)
-			throw new IllegalArgumentException("Vectors have to be of the same length.");
-		
-		double result = 0.0;
-		for (int i = 0; i < a.length; i++)
-			result += a[i] * b[i];
-		return result;
+		public AFun aFun() {
+			return aFun;
+		}
 	}
 }

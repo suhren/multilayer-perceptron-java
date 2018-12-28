@@ -1,19 +1,21 @@
 package com.mlp.network;
 
+import com.mlp.math.Vector;
+
 public class TrainingEntry {
-	private double[] input;
-	private double[] expectedOutput;
+	private Vector input;
+	private Vector expectedOutput;
 	
-	public TrainingEntry(double[] input, double[] expectedOutput) {
+	public TrainingEntry(Vector input, Vector expectedOutput) {
 		this.input = input;
 		this.expectedOutput = expectedOutput;
 	}
 	
-	public double[] getInput() {
+	public Vector getInput() {
 		return input;
 	}
 
-	public double[] getExpectedOutput() {
+	public Vector getExpectedOutput() {
 		return expectedOutput;
 	}
 }

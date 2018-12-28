@@ -1,5 +1,6 @@
 package com.mlp.program;
 
+import com.mlp.math.Vector;
 import com.mlp.network.TrainingSet;
 
 public class MNIST extends TrainingSet {
@@ -38,10 +39,10 @@ public class MNIST extends TrainingSet {
 	public int[][] getTrainingImage(int index) {
 		return trainingImages[index];
 	}
-	public double[] getTrainingImageAsVector(int index) {
+	public Vector getTrainingImageAsVector(int index) {
 		return(imageAsVector(trainingImages[index]));
 	}
-	public double[] getTrainingLabelAsVector(int index) {
+	public Vector getTrainingLabelAsVector(int index) {
 		return(labelAsVector(trainingLabels[index]));
 	}
 	
@@ -51,23 +52,23 @@ public class MNIST extends TrainingSet {
 	public int[][] getTestImage(int index) {
 		return testImages[index];
 	}
-	public double[] getTestImageAsVector(int index) {
+	public Vector getTestImageAsVector(int index) {
 		return(imageAsVector(testImages[index]));
 	}
-	public double[] getTestLabelAsVector(int index) {
+	public Vector getTestLabelAsVector(int index) {
 		return(labelAsVector(testLabels[index]));
 	}
 	
-	private static double[] labelAsVector(int label) {
+	private static Vector labelAsVector(int label) {
 		double[] result = new double[10];
 		result[label] = 1.0;
-		return result;
+		return new Vector(result);
 	}
-	private static double[] imageAsVector(int[][] image) {
+	private static Vector imageAsVector(int[][] image) {
 		double[] result = new double[image.length * image[0].length];
 		for (int row = 0; row < image.length; row++)
 			for (int col = 0; col < image[0].length; col++)
 				result[row * image[0].length + col] = image[row][col] / 255.0;
-		return result;
+		return new Vector(result);
 	}
 }

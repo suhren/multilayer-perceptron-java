@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import com.mlp.math.ActivationFunction;
+import com.mlp.math.AFun;
 import com.mlp.network.Layer;
 import com.mlp.network.MLP;
 
@@ -34,21 +34,21 @@ public class FileUtils {
 			e.printStackTrace();
 		}
 		
-		writer.write(network.getInputLayer().length + " ");
+		writer.write(network.getInputLayer().size() + " ");
 		for (Layer l : network.getLayers())
-			writer.write(l.w.length + " ");
+			writer.write(l.w.nRow() + " ");
 		writer.write("\n");
 		
 		for (Layer l : network.getLayers())
-			for (int row = 0; row < l.w.length; row++) {
-				for (int col = 0; col < l.w[0].length; col++)
-					writer.write(l.w[row][col] + " ");
-				writer.write(l.b[row] + "\n");
+			for (int row = 0; row < l.w.nRow(); row++) {
+				for (int col = 0; col < l.w.nCol(); col++)
+					writer.write(l.w.get(row, col) + " ");
+				writer.write(l.b.get(row) + "\n");
 			}
 		writer.close();
 	}
 	
-	public static Layer[] readFromFile(String filePath, ActivationFunction aFun) {
+	public static Layer[] readFromFile(String filePath, AFun aFun) {
 		File file = new File(filePath);
 		Scanner sc = null;
 		try {
@@ -75,8 +75,8 @@ public class FileUtils {
 			for (int row = 0; row < nRow; row++) {
 				for (int col = 0; col < nCol; col++)
 					data[col] = sc.nextDouble();
-				layers[i].w[row] = data;
-				layers[i].b[row] = sc.nextDouble();
+				layers[i].w.setRow(row, data);
+				layers[i].b.set(row, sc.nextDouble());
 			}
 		}
 

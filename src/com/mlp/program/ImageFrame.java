@@ -14,6 +14,7 @@ public class ImageFrame extends JFrame {
 	public ImageFrame() {
 		this.imagePanel = new ImagePanel();
 		this.getContentPane().add(imagePanel);
+		this.setAlwaysOnTop(true);
 		this.pack();
 	}
 

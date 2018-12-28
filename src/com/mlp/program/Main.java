@@ -1,6 +1,7 @@
 package com.mlp.program;
 import java.util.Scanner;
 
+import com.mlp.math.Vector;
 import com.mlp.math.Utils;
 import com.mlp.network.MLP;
 import com.mlp.network.TrainingSet;
@@ -24,13 +25,13 @@ public class Main {
 		// Works for a single image, not all of them!
 		//MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {8, 4, 4, 10}, Utils.sinusoid, 0.01);
 		
-		MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {12, 10}, Utils.elliotSig, 0.01);
+		MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {12, 10}, Utils.AFunLibrary.ELLIOT_SIG.aFun(), 0.01);
 
 //		MLP mlp = new MLP(FileUtils.readFromFile("mlp-12-10-elliotSig-0_01.txt", Utils.elliotSig));
 		
 		for (int i = 1; i <= 100; i++) {
-			mlp.train(trainingSet);
-			System.out.println("Loop" + i + ": Cost: " + mlp.getCost());
+			double averageCost = mlp.train(trainingSet);
+			System.out.println("Loop" + i + ": Cost: " + averageCost);
 		}
 	
 		ImageFrame imageFrame = new ImageFrame();
@@ -49,8 +50,8 @@ public class Main {
 			}
 			else if (parts[0].equals("input")) {
 				if (i > 0) {
-					double[] output = mlp.feedThrough(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
-					printArray(output);
+					Vector output = mlp.feedThrough(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
+					printVector(output);
 					System.out.println("The most likely digit is " + mostLikely(output));
 				}
 				else {
@@ -60,8 +61,9 @@ public class Main {
 			else if (parts[0].equals("exit")) {
 				break;
 			}
-			
 		}
+		sc.close();
+		
 //		FileUtils.writeToFile(mlp, "mlp-12-10-elliotSig-0_01.txt");
 		
 //		System.out.println("");
@@ -103,16 +105,16 @@ public class Main {
 //		}
 	}
 	
-	public static int mostLikely(double[] output) {
+	public static int mostLikely(Vector output) {
 		int current = 0;
-		for (int i = 1; i < output.length; i++)
-			if (output[i] > output[current])
+		for (int i = 1; i < output.size(); i++)
+			if (output.get(i) > output.get(current))
 				current = i;
 		return current;
 	}
 	
-	public static void printArray(double[] d) {
-		for (int i = 0; i < d.length; i++)
-			System.out.println(d[i]);
+	public static void printVector(Vector d) {
+		for (int i = 0; i < d.size(); i++)
+			System.out.println(d.get(i));
 	}
 }
