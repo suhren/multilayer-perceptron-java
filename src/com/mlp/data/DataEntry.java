@@ -1,4 +1,4 @@
-package com.mlp.network;
+package com.mlp.data;
 
 import com.mlp.math.Vector;
 

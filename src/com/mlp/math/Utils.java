@@ -1,5 +1,7 @@
 package com.mlp.math;
 
+import java.util.Arrays;
+
 public class Utils {
 	// List of activation functions:
 	// https://en.wikipedia.org/wiki/Activation_function
@@ -75,5 +77,33 @@ public class Utils {
 		public AFun aFun() {
 			return aFun;
 		}
+
+		public static String[] getCodes() {
+			return Arrays.stream(AFunLibrary.values()).map(AFunLibrary::code).toArray(String[]::new);
+		}
+	}
+	
+	public static double max(double[] data) {
+		double max = data[0];
+		for (int i = 0; i < data.length; i++)
+			if (data[i] > max)
+				max = data[i];
+		return max;
+	}
+	
+	public static int constrain(int val, int min, int max) {
+		if (val < min)
+			return min;
+		if (val > max)
+			return max;
+		return val;
+	}
+	
+	public static double constrain(double val, double min, double max) {
+		if (val < min)
+			return min;
+		if (val > max)
+			return max;
+		return val;
 	}
 }

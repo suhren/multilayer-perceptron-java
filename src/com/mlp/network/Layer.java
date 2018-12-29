@@ -13,16 +13,16 @@ import com.mlp.math.Vector;
  *
  */
 public class Layer {
-	public Vector in; 	// The input From the previous layer
-	public Matrix w; 	// The weights
-	public Vector b; 		// The biases
-	public Vector z;		// The net input
-	public AFun aFun; // The activation function
-	public Vector out; 	// The activated output
+	Vector in; 	// The input From the previous layer
+	Matrix w; 	// The weights
+	Vector b; 		// The biases
+	Vector z;		// The net input
+	AFun aFun; // The activation function
+	Vector out; 	// The activated output
 	
-	public Vector dEdZ; 	// The error in the output layer in regards to the input
-	public Matrix wNew; // The new weights
-	public Vector bNew; 	// The new biases
+	Vector dEdZ; 	// The error in the output layer in regards to the input
+	Matrix wNew; // The new weights
+	Vector bNew; 	// The new biases
 	
 	public Layer(int wRows, int wCols) {
 		this(new Matrix(wRows, wCols), new Vector(wRows), Utils.AFunLibrary.IDENTITY.aFun());
@@ -58,6 +58,18 @@ public class Layer {
 		z = w.multiply(in).add(b);
 		out = aFun.eval(z);
 		return out;
+	}
+	
+	public Matrix getWeights() {
+		return w;
+	}
+	
+	public Vector getBiases() {
+		return b;
+	}
+	
+	public AFun getAFun() {
+		return aFun;
 	}
 	
 	@Override

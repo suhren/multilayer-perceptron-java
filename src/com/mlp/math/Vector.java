@@ -91,6 +91,10 @@ public class Vector {
 		return result;
 	}
 	
+	public double[] data() {
+		return data;
+	}
+	
 	public int size() {
 		return size;
 	}

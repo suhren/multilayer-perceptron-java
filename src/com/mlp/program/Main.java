@@ -2,9 +2,10 @@ package com.mlp.program;
 import java.util.Scanner;
 
 import com.mlp.math.Vector;
+import com.mlp.data.DataSet;
+import com.mlp.data.MNIST;
 import com.mlp.math.Utils;
 import com.mlp.network.MLP;
-import com.mlp.network.DataSet;
 
 /**
  * The main entry point of the program.
@@ -12,68 +13,74 @@ import com.mlp.network.DataSet;
  */
 public class Main {
 	public static void main(String[] args) {
-		MNIST mnist = FileUtils.readMNIST(
-				"MNIST\\train-labels-idx1-ubyte",
-				"MNIST\\train-images-idx3-ubyte",
-				"MNIST\\t10k-labels-idx1-ubyte",
-				"MNIST\\t10k-images-idx3-ubyte");
+//		MNIST mnistTraining = FileUtils.readMNIST(
+//				"MNIST\\train-labels-idx1-ubyte",
+//				"MNIST\\train-images-idx3-ubyte");
+//		MNIST mnistTest = FileUtils.readMNIST(
+//				"MNIST\\t10k-labels-idx1-ubyte",
+//				"MNIST\\t10k-images-idx3-ubyte");
 		
-		DataSet trainingSet = new DataSet();
-		for (int i = 0; i < mnist.nTrainingImages(); i++)
-			trainingSet.addEntry(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
-
-		DataSet testSet = new DataSet();
-		for (int i = 0; i < mnist.nTestImages(); i++)
-			testSet.addEntry(mnist.getTestImageAsVector(i), mnist.getTestLabelAsVector(i));
+		TestFrame frame = new TestFrame();
+		frame.setVisible(true);
+//		DataSet trainingSet = new DataSet();
+//		for (int i = 0; i < mnist.nTrainingImages(); i++)
+//			trainingSet.addEntry(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
+//
+//		DataSet testSet = new DataSet();
+//		for (int i = 0; i < mnist.nTestImages(); i++)
+//			testSet.addEntry(mnist.getTestImageAsVector(i), mnist.getTestLabelAsVector(i));
 		
 		// Works for a single image, not all of them!
 		//MLP mlp = new MLP(mnist.nRows() * mnist.nCols(), new int[] {8, 4, 4, 10}, Utils.sinusoid, 0.01);
 		
 //		MLP mlp = new MLP("mlp-12-10-elliotSig-0_01", 0.01, mnist.nRows() * mnist.nCols(), new int[] {12, 10}, Utils.AFunLibrary.ELLIOT_SIG.aFun());
 
-		MLP mlp = FileUtils.readFromFile("mlp-12-10-elliotSig-0_01.txt");
+//		MLP mlp = FileUtils.readFromFile("networks\\mlp-12-10-elliotSig-0_01.txt");
 		
 //		for (int i = 1; i <= 100; i++) {
 //			double averageCost = mlp.train(trainingSet);
 //			System.out.println("Loop" + i + ": Cost: " + averageCost);
 //		}
 	
-		double rate = mlp.test(testSet);
-		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
-		rate = mlp.test(trainingSet);
-		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
-		
-		ImageFrame imageFrame = new ImageFrame();
-		imageFrame.setVisible(true);
-
+//		double rate = mlp.test(testSet);
+//		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
+//		rate = mlp.test(trainingSet);
+//		System.out.println("The MLP guessed the correct digit in " + rate * 100 + "% of the cases.");
+//		
+//
+//		for (int i = 0; i < mlp.getLayer(0).getWeights().nRow(); i++)
+//			visualizeNeuron(mlp, 0, i, 28, 28);
+//		
+//		ImageFrame imageFrame = new ImageFrame();
+//		imageFrame.setVisible(true);
 //		FileUtils.writeToFile(mlp, "mlp-12-10-elliotSig-0_01.txt");
 		
-		int i = -1;
-		Scanner sc = new Scanner(System.in);
-		
-		while (true) {
-			String input = sc.nextLine();
-			String[] parts = input.split(" ");
-			if (parts[0].equals("load")) {
-				i = Integer.parseInt(parts[1]);
-				imageFrame.setImage(mnist.getTrainingImage(i));
-				imageFrame.setTitle(Integer.toString(mnist.getTrainingLabel(i)));
-			}
-			else if (parts[0].equals("input")) {
-				if (i > 0) {
-					Vector output = mlp.feedThrough(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
-					printVector(output);
-					System.out.println("The most likely digit is " + mostLikely(output));
-				}
-				else {
-					System.out.println("Invalid index");
-				}
-			}
-			else if (parts[0].equals("exit")) {
-				break;
-			}
-		}
-		sc.close();
+//		int i = -1;
+//		Scanner sc = new Scanner(System.in);
+//		
+//		while (true) {
+//			String input = sc.nextLine();
+//			String[] parts = input.split(" ");
+//			if (parts[0].equals("load")) {
+//				i = Integer.parseInt(parts[1]);
+//				imageFrame.setImage(mnist.getTrainingImage(i));
+//				imageFrame.setTitle(Integer.toString(mnist.getTrainingLabel(i)));
+//			}
+//			else if (parts[0].equals("input")) {
+//				if (i > 0) {
+//					Vector output = mlp.feedThrough(mnist.getTrainingImageAsVector(i), mnist.getTrainingLabelAsVector(i));
+//					printVector(output);
+//					System.out.println("The most likely digit is " + mostLikely(output));
+//				}
+//				else {
+//					System.out.println("Invalid index");
+//				}
+//			}
+//			else if (parts[0].equals("exit")) {
+//				break;
+//			}
+//		}
+//		sc.close();
 		
 //		
 //		System.out.println("");
@@ -113,6 +120,13 @@ public class Main {
 //			System.out.println(network.getCost());
 //			System.out.print(network.toString());
 //		}
+	}
+	
+	private static void visualizeNeuron(MLP mlp, int layer, int row, int width, int height) {
+		ImageFrame img = new ImageFrame();
+		img.setVisible(true);
+		img.setImage(mlp.getLayer(layer).getWeights().getRow(row).data(), width, height);
+		img.setTitle("Neuron " + row);
 	}
 	
 	public static int mostLikely(Vector output) {

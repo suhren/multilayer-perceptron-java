@@ -1,5 +1,7 @@
 package com.mlp.network;
 
+import com.mlp.data.DataEntry;
+import com.mlp.data.DataSet;
 import com.mlp.math.AFun;
 import com.mlp.math.Vector;
 
@@ -58,7 +60,16 @@ public class MLP {
 		return sum / trainingSet.getEntries().size();
 	}
 	
-	public double test(DataSet testSet) {
+	public double train(DataSet trainingSet, int n) {
+		double sum = 0.0;
+		
+		for (int i = 0; i < n; i++)
+			sum += train(trainingSet);
+		
+		return sum / n;
+	}
+	
+	public int test(DataSet testSet) {
 		int nCorrect = 0;
 		
 		for (DataEntry e : testSet.getEntries()) {
@@ -67,7 +78,7 @@ public class MLP {
 				nCorrect++;
 		}
 		
-		return nCorrect * 1.0 / testSet.getEntries().size();
+		return nCorrect;
 		
 	}
 	
@@ -160,6 +171,10 @@ public class MLP {
 	
 	public Vector getInput() {
 		return input;
+	}
+	
+	public Vector getOutput() {
+		return oL.out;
 	}
 	
 	@Override
@@ -265,8 +280,11 @@ public class MLP {
 		}
 	}
 
-	
-	private int mostLikely(Vector output) {
+	public Layer getLayer(int i) {
+		return layers[i];
+	}
+		
+	public int mostLikely(Vector output) {
 		int current = 0;
 		for (int i = 1; i < output.size(); i++)
 			if (output.get(i) > output.get(current))
