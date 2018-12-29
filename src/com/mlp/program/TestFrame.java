@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.io.File;
+import java.io.FileFilter;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -44,12 +46,13 @@ public class TestFrame extends JFrame {
 	private Map<String, DataSet> dataSets = new HashMap<>();
 	
 	private MLP mlp;
-	private int dataSetNumber = 1;
+	private int dataSetIndex = 0;
 	private DataSet dataSet;
 	private JFormattedTextField dataIndexField;
 	private JLabel sizeLabel;
-	ImagePanel imagePanel;
+	private ImagePanel imagePanel;
 	private JTextArea dataArea, infoArea, outputArea;
+	private JFormattedTextField repeatField;
 	
 	public TestFrame() {
 		setupFrame();
@@ -64,15 +67,29 @@ public class TestFrame extends JFrame {
 		JPanel topPanel = new JPanel();
 		topPanel.setBorder(BorderFactory.createTitledBorder("Actions"));
 		topPanel.setLayout(new FlowLayout());
+		JButton newButton = new JButton("New MLP");
+		newButton.addActionListener(e -> newMLP());
+		topPanel.add(newButton);
 		JButton loadButton = new JButton("Load MLP");
 		loadButton.addActionListener(e -> loadMLP());
 		topPanel.add(loadButton);
+		JButton saveButton = new JButton("Save MLP");
+		saveButton.addActionListener(e -> saveMLP());
+		topPanel.add(saveButton);
 		JButton inputEntry = new JButton("Input Entry");
 		inputEntry.addActionListener(e -> inputEntry());
 		topPanel.add(inputEntry);
-		JButton inputDataSet = new JButton("Input Data Set");
-		inputDataSet.addActionListener(e -> inputDataSet());
-		topPanel.add(inputDataSet);
+		JButton testDataSet = new JButton("Test Data Set");
+		testDataSet.addActionListener(e -> inputDataSet());
+		topPanel.add(testDataSet);
+		JButton trainDataSet = new JButton("Train Data Set");
+		trainDataSet.addActionListener(e -> trainDataSet());
+		topPanel.add(trainDataSet);
+		repeatField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		repeatField.setColumns(6);
+		repeatField.setBorder(BorderFactory.createTitledBorder("Repeat"));
+		repeatField.setValue(1);
+		topPanel.add(repeatField);
 		JButton clearLog = new JButton("Clear Log");
 		clearLog.addActionListener(e -> outputArea.setText(""));
 		topPanel.add(clearLog);
@@ -138,6 +155,62 @@ public class TestFrame extends JFrame {
 		pack();
 	}
 
+	private void trainDataSet() {
+		if (mlp == null) {
+			printLineLog("No MLP specified");
+			return;
+		}
+		if (dataSet == null) {
+			printLineLog("No data set specified");
+			return;
+		}
+		int repeat = Integer.parseInt(repeatField.getText());
+		printStatus(mlp, "Started training with " + dataSet.getName() + " repeated " + repeat + " times");
+		for (int i = 1; i <= repeat; i++) {
+			double average = mlp.train(dataSet);
+			printStatus(mlp, "Set " + i + "/" + repeat  + ", ave.cost = " + average);
+		}
+		printStatus(mlp, "Finished training with " + dataSet.getName());
+	}
+
+	private void saveMLP() {
+		if (mlp == null) {
+			printLineLog("No MLP specified");
+			return;
+		}
+		
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileFilter(new FileNameExtensionFilter("Text Files", "txt"));
+		fileChooser.setCurrentDirectory(new java.io.File("."));
+		fileChooser.setDialogTitle("Specify a file to save");   
+		 
+		int userSelection = fileChooser.showSaveDialog(this);
+		 
+		if (userSelection == JFileChooser.APPROVE_OPTION) {
+		    File fileToSave = fileChooser.getSelectedFile();
+		    String path = fileToSave.getAbsolutePath() + ".txt";
+			FileUtils.writeToFile(mlp, path);
+			printStatus(mlp, "Saved network to " + path);
+		}
+	}
+
+	private void newMLP() {
+	    NewMLPPanel newMLPPanel = new NewMLPPanel();
+		int result = JOptionPane.showConfirmDialog(null, newMLPPanel,
+                "New MLP", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+          if (result == JOptionPane.OK_OPTION) {
+        	MLP mlpNew = newMLPPanel.getMLP(); 
+        	if (mlpNew != null) {
+        		mlp = mlpNew;
+	        	showInfo();
+	  			printStatus(mlp, "Created network");
+        	}
+        	else
+        		printLineLog("Failed to create MLP");
+          }
+	}
+
 	private void inputDataSet() {
 		if (mlp == null) {
 			printLineLog("No MLP specified");
@@ -160,7 +233,7 @@ public class TestFrame extends JFrame {
 			return;
 		}
 		try {
-			DataEntry entry = dataSet.getEntry(dataSetNumber - 1);
+			DataEntry entry = dataSet.getEntry(dataSetIndex);
 			mlp.feedThrough(entry.getInput(), entry.getExpected());
 			double cost = mlp.getCost();
 			printStatus(mlp, "Best guess: " + mlp.mostLikely(mlp.getOutput()) + ", cost: " + Double.toString(cost));
@@ -180,36 +253,36 @@ public class TestFrame extends JFrame {
 	}
 	
 	private void updateIndexField() {
-		dataIndexField.setValue(dataSetNumber);
+		dataIndexField.setValue(dataSetIndex + 1);
 		sizeLabel.setText(" of " + dataSet.getSize());
 	}
 	
 	private void nextData() {
-		if (dataSetNumber < dataSet.getSize())
-			dataSetNumber++;
+		if (dataSetIndex < dataSet.getSize() - 1)
+			dataSetIndex++;
 
 		updateIndexField();
 		
-		if (dataSet.hasImage(dataSetNumber - 1))
-			imagePanel.setImage(dataSet.getImage(dataSetNumber - 1));
+		if (dataSet.hasImage(dataSetIndex))
+			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 	}
 
 	private void indexEdit() {
-		dataSetNumber = Utils.constrain((int) ((long) dataIndexField.getValue()), 1, dataSet.getSize());
+		dataSetIndex = Utils.constrain((int) ((long) dataIndexField.getValue()), 1, dataSet.getSize()) - 1;
 		updateIndexField();
 		
-		if (dataSet.hasImage(dataSetNumber - 1))
-			imagePanel.setImage(dataSet.getImage(dataSetNumber - 1));
+		if (dataSet.hasImage(dataSetIndex))
+			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 	}
 	
 	private void prevData() {
-		if (dataSetNumber > 1)
-			dataSetNumber--;
+		if (dataSetIndex > 0)
+			dataSetIndex--;
 		
 		updateIndexField();
 		
-		if (dataSet.hasImage(dataSetNumber - 1))
-			imagePanel.setImage(dataSet.getImage(dataSetNumber - 1));
+		if (dataSet.hasImage(dataSetIndex))
+			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 	}
 
 	private void selectData(String data) {
@@ -219,10 +292,10 @@ public class TestFrame extends JFrame {
 		s.append(dataSet.getSize() + "\n");
 		
 		dataArea.setText(s.toString());
-		if (dataSet.hasImage(dataSetNumber - 1))
-			imagePanel.setImage(dataSet.getImage(dataSetNumber - 1));
+		if (dataSet.hasImage(dataSetIndex))
+			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 		
-		dataSetNumber = 1;
+		dataSetIndex = 0;
 		updateIndexField();
 	}
 

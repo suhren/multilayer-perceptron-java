@@ -39,4 +39,9 @@ public class AFun {
 			result[i] = evalDerivate(v.get(i));
 		return new Vector(result);
 	}
+	
+	@Override
+	public String toString() {
+		return code;
+	}
 }
