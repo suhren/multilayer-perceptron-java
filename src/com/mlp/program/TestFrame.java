@@ -3,25 +3,36 @@ package com.mlp.program;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
@@ -34,6 +45,26 @@ import com.mlp.network.Layer;
 import com.mlp.network.MLP;
 
 public class TestFrame extends JFrame {
+	
+	private class MyDispatcher implements KeyEventDispatcher {
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent e) {
+        	if (e.getID() == KeyEvent.KEY_PRESSED) {
+	    		if (e.getKeyCode() == KeyEvent.VK_ENTER)
+	    			inputEntry();
+	    		else if (e.getKeyCode() == KeyEvent.VK_LEFT)
+	    			prevData();
+	    		else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
+	    			nextData();
+	    		else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+	    			setVisible(false);
+	    			dispose();
+	    		}
+        	}
+    		return false;
+        }
+    }
+	
 	private static final long serialVersionUID = 1L;
 
 	private MNIST mnistTraining = FileUtils.readMNIST(
@@ -59,6 +90,8 @@ public class TestFrame extends JFrame {
 	
 	public TestFrame() {
 		setupFrame();
+		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        manager.addKeyEventDispatcher(new MyDispatcher());
 	}
 	
 	private void setupFrame() {
@@ -79,6 +112,9 @@ public class TestFrame extends JFrame {
 		JButton saveButton = new JButton("Save MLP");
 		saveButton.addActionListener(e -> saveMLP());
 		topPanel.add(saveButton);
+		JButton inspectMLP = new JButton("Inspect MLP");
+		inspectMLP.addActionListener(e -> inspectMLP());
+		topPanel.add(inspectMLP);
 		JButton inputEntry = new JButton("Input Entry");
 		inputEntry.addActionListener(e -> inputEntry());
 		topPanel.add(inputEntry);
@@ -159,6 +195,15 @@ public class TestFrame extends JFrame {
 		pack();
 	}
 
+	private void inspectMLP() {
+		if (mlp == null) {
+			printLineLog("No MLP specified");
+			return;
+		}
+		for (int i = 0; i < mlp.getLayer(0).getWeights().nRow(); i++)
+			visualizeNeuron(mlp, 0,  i, 28, 28);
+	}
+
 	private void trainDataSet() {
 		if (mlp == null) {
 			printLineLog("No MLP specified");
@@ -206,20 +251,13 @@ public class TestFrame extends JFrame {
 	}
 
 	private void newMLP() {
-	    NewMLPPanel newMLPPanel = new NewMLPPanel();
-		int result = JOptionPane.showConfirmDialog(null, newMLPPanel,
-                "New MLP", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-          if (result == JOptionPane.OK_OPTION) {
-        	MLP mlpNew = newMLPPanel.getMLP(); 
-        	if (mlpNew != null) {
-        		mlp = mlpNew;
-	        	showInfo();
-	  			printStatus(mlp, "Created network");
-        	}
-        	else
-        		printLineLog("Failed to create MLP");
-          }
+		NewMLPDialog newMLPDialog = new NewMLPDialog(this);
+		newMLPDialog.setVisible(true);
+		if (newMLPDialog.getMLP() != null) {
+			mlp = newMLPDialog.getMLP();
+        	showInfo();
+  			printStatus(mlp, "Created network");
+		}
 	}
 
 	private void inputDataSet() {
@@ -344,5 +382,12 @@ public class TestFrame extends JFrame {
 			s.append("Activation function: "+ l.getAFun().code() + "\n");
 		}
 		infoArea.setText(s.toString());
+	}
+	
+	private static void visualizeNeuron(MLP mlp, int layer, int row, int width, int height) {
+		ImageFrame img = new ImageFrame();
+		img.setVisible(true);
+		img.setImage(mlp.getLayer(layer).getWeights().getRow(row).data(), width, height);
+		img.setTitle("Neuron " + row);
 	}
 }
