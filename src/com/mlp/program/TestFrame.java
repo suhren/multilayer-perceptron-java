@@ -19,8 +19,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
 
@@ -52,6 +54,7 @@ public class TestFrame extends JFrame {
 	private JLabel sizeLabel;
 	private ImagePanel imagePanel;
 	private JTextArea dataArea, infoArea, outputArea;
+	private JScrollPane scrollAreaLog;
 	private JFormattedTextField repeatField;
 	
 	public TestFrame() {
@@ -144,9 +147,10 @@ public class TestFrame extends JFrame {
 		outputArea.setLineWrap(true);
 		outputArea.setBackground(new Color(240, 240, 240));
 		outputArea.setBorder(BorderFactory.createTitledBorder("MLP output"));
-		DefaultCaret caret = (DefaultCaret) outputArea.getCaret();
-		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		JScrollPane scrollAreaLog = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+		// Causes AWT to freeze when called from another thread?
+		// DefaultCaret caret = (DefaultCaret) outputArea.getCaret();
+		//caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		scrollAreaLog = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		getContentPane().add(scrollAreaLog, BorderLayout.EAST);
 
@@ -164,13 +168,20 @@ public class TestFrame extends JFrame {
 			printLineLog("No data set specified");
 			return;
 		}
-		int repeat = Integer.parseInt(repeatField.getText());
-		printStatus(mlp, "Started training with " + dataSet.getName() + " repeated " + repeat + " times");
-		for (int i = 1; i <= repeat; i++) {
-			double average = mlp.train(dataSet);
-			printStatus(mlp, "Set " + i + "/" + repeat  + ", ave.cost = " + average);
-		}
-		printStatus(mlp, "Finished training with " + dataSet.getName());
+		
+		int nRepeat = Integer.parseInt(repeatField.getText());
+		
+		new Thread() {
+			@Override
+	        public void run() {
+				printStatus(mlp, "Started training with " + dataSet.getName() + " repeated " + nRepeat + " times");
+				for (int i = 1; i <= nRepeat; i++) {
+					double average = mlp.train(dataSet);
+					printStatus(mlp, "Set " + i + "/" + nRepeat  + ", ave.cost = " + average);
+				}
+				printStatus(mlp, "Finished training with " + dataSet.getName());
+	        }
+		}.start();
 	}
 
 	private void saveMLP() {
@@ -248,8 +259,15 @@ public class TestFrame extends JFrame {
 	}
 	
 	private void printLineLog(String s) {
-		outputArea.append(s + "\n");
-		outputArea.paintImmediately(outputArea.getBounds());
+		SwingUtilities.invokeLater(new Runnable()
+	    {
+	        @Override
+	        public void run()
+	        {
+	    		outputArea.append(s + "\n");
+	    		outputArea.setCaretPosition(outputArea.getText().length());
+	        }
+	    });
 	}
 	
 	private void updateIndexField() {
