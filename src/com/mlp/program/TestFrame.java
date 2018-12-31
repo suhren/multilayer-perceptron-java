@@ -5,37 +5,25 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
-import java.io.FileFilter;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.DefaultCaret;
 
 import com.mlp.data.DataEntry;
 import com.mlp.data.DataSet;
@@ -56,10 +44,6 @@ public class TestFrame extends JFrame {
 	    			prevData();
 	    		else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
 	    			nextData();
-	    		else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-	    			setVisible(false);
-	    			dispose();
-	    		}
         	}
     		return false;
         }
@@ -141,7 +125,7 @@ public class TestFrame extends JFrame {
 		getContentPane().add(inputPanel, BorderLayout.WEST);
 
 		JComboBox<String> comboBox = new JComboBox<>(dataSets.keySet().toArray(new String[dataSets.size()]));
-		comboBox.addActionListener(e -> selectData((String) comboBox.getSelectedItem()));
+		comboBox.addActionListener(e -> selectDataSet((String) comboBox.getSelectedItem()));
 		inputPanel.add(comboBox);
 		
 		dataArea = new JTextArea(10, 20);
@@ -183,14 +167,11 @@ public class TestFrame extends JFrame {
 		outputArea.setLineWrap(true);
 		outputArea.setBackground(new Color(240, 240, 240));
 		outputArea.setBorder(BorderFactory.createTitledBorder("MLP output"));
-		// Causes AWT to freeze when called from another thread?
-		// DefaultCaret caret = (DefaultCaret) outputArea.getCaret();
-		//caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		scrollAreaLog = new JScrollPane(outputArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		getContentPane().add(scrollAreaLog, BorderLayout.EAST);
 
-		selectData((String) comboBox.getSelectedItem());
+		selectDataSet((String) comboBox.getSelectedItem());
 		updateIndexField();
 		pack();
 	}
@@ -246,10 +227,13 @@ public class TestFrame extends JFrame {
 		    File fileToSave = fileChooser.getSelectedFile();
 		    String path = fileToSave.getAbsolutePath() + ".txt";
 			FileUtils.writeToFile(mlp, path);
+			mlp.setName(fileToSave.getName());
+			showInfo();
 			printStatus(mlp, "Saved network to " + path);
+			
 		}
 	}
-
+	
 	private void newMLP() {
 		NewMLPDialog newMLPDialog = new NewMLPDialog(this);
 		newMLPDialog.setVisible(true);
@@ -275,7 +259,7 @@ public class TestFrame extends JFrame {
 			printStatus(mlp, e.getMessage());
 		}
 	}
-
+	
 	private void inputEntry() {
 		if (mlp == null) {
 			printLineLog("No MLP specified");
@@ -297,11 +281,9 @@ public class TestFrame extends JFrame {
 	}
 	
 	private void printLineLog(String s) {
-		SwingUtilities.invokeLater(new Runnable()
-	    {
+		SwingUtilities.invokeLater(new Runnable() {
 	        @Override
-	        public void run()
-	        {
+	        public void run() {
 	    		outputArea.append(s + "\n");
 	    		outputArea.setCaretPosition(outputArea.getText().length());
 	        }
@@ -322,7 +304,7 @@ public class TestFrame extends JFrame {
 		if (dataSet.hasImage(dataSetIndex))
 			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 	}
-
+	
 	private void indexEdit() {
 		dataSetIndex = Utils.constrain((int) ((long) dataIndexField.getValue()), 1, dataSet.getSize()) - 1;
 		updateIndexField();
@@ -341,7 +323,7 @@ public class TestFrame extends JFrame {
 			imagePanel.setImage(dataSet.getImage(dataSetIndex));
 	}
 
-	private void selectData(String data) {
+	private void selectDataSet(String data) {
 		dataSet = dataSets.get(data);
 		StringBuilder s = new StringBuilder();
 		s.append(dataSet.getName() + "\n");

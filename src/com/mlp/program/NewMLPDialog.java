@@ -44,7 +44,6 @@ class ProtoLayer {
 
 public class NewMLPDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
-	private JTextField tfName;
 	private JFormattedTextField tfRate;
 	private JFormattedTextField tfInput;
 	private JComboBox<ProtoLayer> comboLayers;
@@ -60,10 +59,6 @@ public class NewMLPDialog extends JDialog {
 		
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		
-		tfName = new JTextField("MLP");
-		tfName.setBorder(BorderFactory.createTitledBorder("Name"));
-		getContentPane().add(tfName);
-
 		tfRate = new JFormattedTextField(NumberFormat.getNumberInstance());
 		tfRate.setValue(0.1);
 		tfRate.setBorder(BorderFactory.createTitledBorder("Learning rate"));
@@ -177,7 +172,7 @@ public class NewMLPDialog extends JDialog {
 				prevSize = p.size;
 				layers[i].randomize();
 			}
-			mlp = new MLP(tfName.getText(), (double) tfRate.getValue(), layers);
+			mlp = new MLP(null, (double) tfRate.getValue(), layers);
 		}
 		catch(Exception e) {
 			JOptionPane.showMessageDialog(this, "Failed to create MLP", "Error", JOptionPane.ERROR_MESSAGE);

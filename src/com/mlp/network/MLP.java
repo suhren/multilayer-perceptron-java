@@ -242,7 +242,7 @@ public class MLP {
 	}
 	
 	public String getName() {
-		return name;
+		return (name != null) ? name : "N/A";
 	}
 	
 	class CharMap {
@@ -294,5 +294,9 @@ public class MLP {
 	
 	public double getLearningRate() {
 		return eta;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

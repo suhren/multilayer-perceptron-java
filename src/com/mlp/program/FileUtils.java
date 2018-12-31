@@ -62,7 +62,6 @@ public class FileUtils {
 			e.printStackTrace();
 		}
 		
-		String mlpName = sc.nextLine();
 		double mlpRate = Double.parseDouble(sc.nextLine());
 		int inputs = Integer.parseInt(sc.nextLine());
 		
@@ -90,7 +89,9 @@ public class FileUtils {
 			inputs = nRow;
 		}
 
-		return new MLP(mlpName, mlpRate, layers);
+		String name = file.getName();
+		name = name.substring(0, name.lastIndexOf('.'));
+		return new MLP(name, mlpRate, layers);
 	}
 	
 	public static MNIST readMNIST(String dataSetName, String labelPath, String imagePath) {
